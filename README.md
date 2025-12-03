@@ -1,6 +1,15 @@
-# TideTracker
-Track tides and weather at local beach
+# Tidetracker
 
-![B1D97707-9A84-400F-BD0E-3E7C76CE60D2_1_201_a](https://user-images.githubusercontent.com/25852077/117740617-ce73b180-b1ce-11eb-9f86-58120becb931.jpeg)
+# Set up environment
 
-For the full story and build, visit https://www.hackster.io/ssbaker/e-ink-tide-and-weather-tracker-21447b 
+```
+sudo apt-get install swig
+```
+
+### Create python virtual environment and install python dependencies
+```
+python -m venv .venv
+source /.venv/bin/activate
+pip install spidev matplotlib numpy gpiozero lgpio noaa_coops
+```
+

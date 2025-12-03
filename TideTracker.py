@@ -90,7 +90,7 @@ def display_error(error_source):
     draw = ImageDraw.Draw(error_image)
     draw.text((100, 150), error_source +' ERROR', font=font50, fill=black)
     draw.text((100, 300), 'Retrying in 30 seconds', font=font22, fill=black)
-    current_time = datetime.now().strftime('%H:%M')
+    current_time = dt.datetime.now().strftime('%H:%M')
     draw.text((300, 365), 'Last Refresh: ' + str(current_time), font = font50, fill=black)
     # Save the error image
     error_image_file = 'error.png'
