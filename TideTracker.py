@@ -9,21 +9,25 @@
 ****************************************************************
 ****************************************************************
 '''
-
+import datetime as dt
+import json
 import sys
 import os
 import time
 import traceback
-import requests, json
+import random
+import requests
 from io import BytesIO
+from typing import Optional, Iterable, Tuple
+
 import noaa_coops as nc
 import matplotlib.pyplot as plt
 import numpy as np
-import datetime as dt
+from PIL import Image, ImageDraw, ImageFont
+
 
 sys.path.append('lib')
 from waveshare_epd import epd7in5_V2
-from PIL import Image, ImageDraw, ImageFont
 
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
@@ -100,6 +104,60 @@ def display_error(error_source):
     # Write error to screen
     write_to_screen(error_image_file, 30)
 
+
+def get_weather_current_conditions(url):
+    pass
+
+def get_weather_forecast(url, days: int = 2):
+    pass
+
+def request_with_retries(
+    url: str,
+    *,
+    max_retries: int = 3,
+    backoff_factor: float = 0.5,
+    jitter: float = 0.1,
+    status_forcelist: Tuple[int, ...] = (500, 502, 503, 504),
+    timeout: Optional[float] = 10
+) -> requests.Response:
+    """
+    #TODO: finish this on big screen
+    GET request with retries, exponential backoff and optional jitter.
+    - url: request URL
+    - session: optional requests.Session to reuse connections
+    - max_retries: number of retry attempts on failure (0 means no retry)
+    - backoff_factor: base backoff in seconds; sleep = backoff_factor * (2 ** attempt)
+    - jitter: fraction (0..1) to vary sleep by +/- jitter
+    - status_forcelist: HTTP statuses that trigger a retry
+    - timeout: per-request timeout (seconds)
+    - kwargs: passed to requests.get (params, headers, etc.)
+    """
+    sess = requests.Session()
+    last_exc: Optional[Exception] = None
+
+    for attempt in range(0, max_retries + 1):
+        try:
+            resp = sess.get(url, timeout=timeout)
+            # If status indicates retry and we still have attempts left
+            if resp.status_code in status_forcelist and attempt < max_retries:
+                sleep = backoff_factor * (2 ** attempt)
+                if jitter:
+                    sleep *= 1 + random.uniform(-jitter, jitter)
+                time.sleep(sleep)
+                continue
+            return resp
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise
+            sleep = backoff_factor * (2 ** attempt)
+            if jitter:
+                sleep *= 1 + random.uniform(-jitter, jitter)
+            time.sleep(sleep)
+
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("request_with_retries: unexpected exit")
 
 # define function for getting weather data
 def getWeather(URL):
