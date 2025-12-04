@@ -55,6 +55,10 @@ LONGITUDE = '-XX.XXXXXX'
 UNITS = 'imperial'
 
 # Create URL for API call
+OPENWEATHER_CURRENT_CONDITIONS_URL =    'http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}'
+OPENWEATHER_FORECAST_URL =              'http://api.openweathermap.org/data/2.5/forecast/daily?lat={lat}&lon={lon}&cnt={cnt}&appid={api_key}'
+
+#TODO: REPLACE THE BELOW URL
 BASE_URL = 'http://api.openweathermap.org/data/2.5/onecall?'
 URL = BASE_URL + 'lat=' + LATITUDE + '&lon=' + LONGITUDE + '&units=' + UNITS +'&appid=' + API_KEY
 
@@ -104,16 +108,8 @@ def display_error(error_source):
     # Write error to screen
     write_to_screen(error_image_file, 30)
 
-
-def get_weather_current_conditions(url):
-    pass
-
-def get_weather_forecast(url, days: int = 2):
-    pass
-
 def request_with_retries(
     url: str,
-    *,
     max_retries: int = 3,
     backoff_factor: float = 0.5,
     jitter: float = 0.1,
@@ -121,23 +117,20 @@ def request_with_retries(
     timeout: Optional[float] = 10
 ) -> requests.Response:
     """
-    #TODO: finish this on big screen
     GET request with retries, exponential backoff and optional jitter.
     - url: request URL
-    - session: optional requests.Session to reuse connections
     - max_retries: number of retry attempts on failure (0 means no retry)
     - backoff_factor: base backoff in seconds; sleep = backoff_factor * (2 ** attempt)
     - jitter: fraction (0..1) to vary sleep by +/- jitter
     - status_forcelist: HTTP statuses that trigger a retry
     - timeout: per-request timeout (seconds)
-    - kwargs: passed to requests.get (params, headers, etc.)
     """
-    sess = requests.Session()
+    session = requests.Session()
     last_exc: Optional[Exception] = None
 
     for attempt in range(0, max_retries + 1):
         try:
-            resp = sess.get(url, timeout=timeout)
+            resp = session.get(url, timeout=timeout)
             # If status indicates retry and we still have attempts left
             if resp.status_code in status_forcelist and attempt < max_retries:
                 sleep = backoff_factor * (2 ** attempt)
@@ -159,6 +152,21 @@ def request_with_retries(
         raise last_exc
     raise RuntimeError("request_with_retries: unexpected exit")
 
+
+def get_current_conditions(url):
+    current_conditions_url = OPENWEATHER_CURRENT_CONDITIONS_URL.format(lat=LATITUDE, lon=LONGITUDE, units=UNITS, api_key=API_KEY)
+    resp = request_with_retries(current_conditions_url)
+    current_conditions = resp.json()
+    return current_conditions
+
+def get_weather_forecast(url, days: int = 2):
+    forecast_url = OPENWEATHER_FORECAST_URL.format(lat=LATITUDE, lon=LONGITUDE, cnt=days, api_key=API_KEY)
+    resp = request_with_retries(forecast_url)
+    forecast = resp.json()
+    return forecast
+
+
+
 # define function for getting weather data
 def getWeather(URL):
     # Ensure there are no errors with connection
@@ -178,7 +186,7 @@ def getWeather(URL):
     # Check status of code request
     if response.status_code == 200:
         print('Connection to Open Weather successful.')
-        # get data in jason format
+        # get data in json format
         data = response.json()
 
         with open('data.txt', 'w') as outfile:
