@@ -16,15 +16,14 @@ import os
 import time
 import traceback
 import random
-import requests
 from io import BytesIO
 from typing import Optional, Iterable, Tuple
 
-import noaa_coops as nc
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import weather_tides_api
 
 sys.path.append('lib')
 from waveshare_epd import epd7in5_V2
@@ -32,42 +31,7 @@ from waveshare_epd import epd7in5_V2
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
 fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'font')
-configpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')
 
-'''
-****************************************************************
-
-Location specific info required
-
-****************************************************************
-'''
-config = json.loadf(configpath)
-# Optional, displayed on top left
-LOCATION = config.get('location')
-
-# NOAA Station Code for tide data
-StationID = config.get('noaa_station_id')
-
-# For weather data
-# Create Account on openweathermap.com and get API key
-API_KEY = config.get('openweather_api_key')
-# Get LATITUDE and LONGITUDE of location
-LATITUDE = config.get('latitude')
-LONGITUDE = config.get('longitude')
-UNITS = config.get('units')  # 'imperial' for Fahrenheit, 'metric' for Celsius
-
-# Create URL for API call
-OPENWEATHER_CURRENT_CONDITIONS_URL = 'http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}'
-OPENWEATHER_FORECAST_URL =           'http://api.openweathermap.org/data/2.5/forecast/daily?lat={lat}&lon={lon}&cnt={cnt}&appid={api_key}'
-
-
-'''
-****************************************************************
-
-Functions and defined variables
-
-****************************************************************
-'''
 
 # define funciton for writing image and sleeping for specified time
 def write_to_screen(image, sleep_seconds):
@@ -151,73 +115,16 @@ def request_with_retries(
     raise RuntimeError("request_with_retries: unexpected exit")
 
 
-def get_current_conditions(url):
-    current_conditions_url = OPENWEATHER_CURRENT_CONDITIONS_URL.format(lat=LATITUDE, lon=LONGITUDE, units=UNITS, api_key=API_KEY)
-    resp = request_with_retries(current_conditions_url)
-    current_conditions = resp.json()
-    return current_conditions
 
-def get_weather_forecast(url, days: int = 2):
-    forecast_url = OPENWEATHER_FORECAST_URL.format(lat=LATITUDE, lon=LONGITUDE, cnt=days, api_key=API_KEY)
-    resp = request_with_retries(forecast_url)
-    forecast = resp.json()
-    return forecast
 
 
 
 # define function for getting weather data
 def getWeather(URL):
-    # Ensure there are no errors with connection
-    error_connect = True
-    while error_connect == True:
-        try:
-            # HTTP request
-            print('Attempting to connect to OWM.')
-            response = requests.get(URL)
-            print('Connection to OWM successful.')
-            error_connect = None
-        except:
-            # Call function to display connection error
-            print('Connection error.')
-            display_error('CONNECTION')
-
-    # Check status of code request
-    if response.status_code == 200:
-        print('Connection to Open Weather successful.')
-        # get data in json format
-        data = response.json()
-
-        with open('data.txt', 'w') as outfile:
-            json.dump(data, outfile)
-
-        return data
-
-    else:
-        # Call function to display HTTP error
-        display_error('HTTP')
-
-
-# last 24 hour data, add argument for start/end_date
-def past24(StationID):
-    # Create Station Object
-    stationdata = nc.Station(StationID)
-
-    # Get today date string
-    today = dt.datetime.now()
-    todaystr = today.strftime("%Y%m%d %H:%M")
-    # Get yesterday date string
-    yesterday = today - dt.timedelta(days=1)
-    yesterdaystr = yesterday.strftime("%Y%m%d %H:%M")
-
-    # Get water level data
-    WaterLevel = stationdata.get_data(
-        begin_date=yesterdaystr,
-        end_date=todaystr,
-        product="water_level",
-        datum="MLLW",
-        time_zone="lst_ldt")
-
-    return WaterLevel
+    try:
+        current_weather = weather_tides_api.current_weather()
+    except Exception as err:
+        display_error(err)
 
 
 # Plot last 24 hours of tide
@@ -238,27 +145,7 @@ def plotTide(TideData):
 
 
 # Get High and Low tide info
-def HiLo(StationID):
-    # Create Station Object
-    stationdata = nc.Station(StationID)
-
-    # Get today date string
-    today = dt.datetime.now()
-    todaystr = today.strftime("%Y%m%d")
-    # Get yesterday date string
-    tomorrow = today + dt.timedelta(days=1)
-    tomorrowstr = tomorrow.strftime("%Y%m%d")
-
-    # Get Hi and Lo Tide info
-    TideHiLo = stationdata.get_data(
-        begin_date=todaystr,
-        end_date=tomorrowstr,
-        product="predictions",
-        datum="MLLW",
-        interval="hilo",
-        time_zone="lst_ldt")
-
-    return TideHiLo
+d
 
 
 # Set the font sizes
@@ -288,8 +175,9 @@ def main():
 
     while True:
         # Get weather data
-        data = getWeather(URL)
+        data = getWeather()
 
+        #TODO: check new results from getWeather and update the below keys to access needed fields
         # get current dict block
         current = data['current']
         # get current
