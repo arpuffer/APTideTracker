@@ -70,61 +70,9 @@ def display_error(error_source):
     # Write error to screen
     write_to_screen(error_image_file, 30)
 
-def request_with_retries(
-    url: str,
-    max_retries: int = 3,
-    backoff_factor: float = 0.5,
-    jitter: float = 0.1,
-    status_forcelist: Tuple[int, ...] = (500, 502, 503, 504),
-    timeout: Optional[float] = 10
-) -> requests.Response:
-    """
-    GET request with retries, exponential backoff and optional jitter.
-    - url: request URL
-    - max_retries: number of retry attempts on failure (0 means no retry)
-    - backoff_factor: base backoff in seconds; sleep = backoff_factor * (2 ** attempt)
-    - jitter: fraction (0..1) to vary sleep by +/- jitter
-    - status_forcelist: HTTP statuses that trigger a retry
-    - timeout: per-request timeout (seconds)
-    """
-    session = requests.Session()
-    last_exc: Optional[Exception] = None
-
-    for attempt in range(0, max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout)
-            # If status indicates retry and we still have attempts left
-            if resp.status_code in status_forcelist and attempt < max_retries:
-                sleep = backoff_factor * (2 ** attempt)
-                if jitter:
-                    sleep *= 1 + random.uniform(-jitter, jitter)
-                time.sleep(sleep)
-                continue
-            return resp
-        except requests.RequestException as exc:
-            last_exc = exc
-            if attempt >= max_retries:
-                raise
-            sleep = backoff_factor * (2 ** attempt)
-            if jitter:
-                sleep *= 1 + random.uniform(-jitter, jitter)
-            time.sleep(sleep)
-
-    if last_exc:
-        raise last_exc
-    raise RuntimeError("request_with_retries: unexpected exit")
-
-
-
-
-
-
 # define function for getting weather data
 def getWeather(URL):
-    try:
-        current_weather = weather_tides_api.current_weather()
-    except Exception as err:
-        display_error(err)
+
 
 
 # Plot last 24 hours of tide
@@ -145,7 +93,6 @@ def plotTide(TideData):
 
 
 # Get High and Low tide info
-d
 
 
 # Set the font sizes
@@ -175,21 +122,17 @@ def main():
 
     while True:
         # Get weather data
-        data = getWeather()
+        cur_weather = current_weather()
 
-        #TODO: check new results from getWeather and update the below keys to access needed fields
-        # get current dict block
-        current = data['current']
-        # get current
-        temp_current = current['temp']
+        temp_current = cur_weather['main']['temp']
         # get feels like
-        feels_like = current['feels_like']
+        feels_like = cur_weather['main']['feels_like']
         # get humidity
-        humidity = current['humidity']
+        humidity = cur_weather['main']['humidity']
         # get pressure
-        wind = current['wind_speed']
+        wind = cur_weather['wind']['speed']
         # get description
-        weather = current['weather']
+        weather = cur_weather['weather']
         report = weather[0]['description']
         # get icon url
         icon_code = weather[0]['icon']
