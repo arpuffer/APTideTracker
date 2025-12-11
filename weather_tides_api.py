@@ -5,19 +5,16 @@ import requests
 import time
 
 import noaa_coops
+from noaa_sdk import NOAA
 
 configpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')
 
 with open(configpath, 'r') as configfile:
     config = json.load(configfile)
-# Optional, displayed on top left
-LOCATION = config.get('location')
 
-# NOAA Station Code for tide data
-StationID = config.get('noaa_station_id')
 
-# For weather data
-# Create Account on openweathermap.com and get API key
+NOAA_COOPS_STATION = config.get('noaa_station_id')
+
 API_KEY = config.get('openweather_api_key')
 # Get LATITUDE and LONGITUDE of location
 LATITUDE = config.get('latitude')
@@ -52,21 +49,16 @@ def current_weather():
     response = request_with_retries(url)
     return response.json()
 
-def forecast_weather(days=2):
-    """Fetch weather forecast data from OpenWeatherMap API."""
-    url = OPENWEATHER_FORECAST_URL.format(
-        lat=LATITUDE,
-        lon=LONGITUDE,
-        cnt=days,
-        api_key=API_KEY
-    )
-    response = request_with_retries(url)
-    return response.json()
+def forecast_weather():
+    noaa = NOAA()
+    noaa.user_agent = config.get('noaa_user_agent')
+    forecast = noaa.points_forecast(LATITUDE, LONGITUDE, type='forecast')
+    return forecast
 
 # last 24 hour data, add argument for start/end_date
-def water_level_24h(StationID):
+def water_level_24h(NOAA_COOPS_STATION):
     # Create Station Object
-    stationdata = noaa_coops.Station(StationID)
+    stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
 
     # Get today date string
     today = dt.datetime.now()
@@ -85,9 +77,9 @@ def water_level_24h(StationID):
 
     return WaterLevel
 
-def tides(StationID):
+def tides(NOAA_COOPS_STATION):
     # Create Station Object
-    stationdata = noaa_coops.Station(StationID)
+    stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
 
     # Get today date string
     today = dt.datetime.now()
@@ -117,11 +109,11 @@ def main():
     print("\nForecast:")
     print(forecast)
 
-    water_level = water_level_24h(StationID)
+    water_level = water_level_24h(NOAA_COOPS_STATION)
     print("\nWater Level (Last 24 hours):")
     print(water_level)
     
-    tide = tides(StationID)
+    tide = tides(NOAA_COOPS_STATION)
     print("\nTide Data:")
     print(tide)
 
