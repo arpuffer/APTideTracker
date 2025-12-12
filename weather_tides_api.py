@@ -4,8 +4,8 @@ import os
 import requests
 import time
 
+from pprint import pprint
 import noaa_coops
-from noaa_sdk import NOAA
 
 configpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')
 
@@ -22,8 +22,7 @@ LONGITUDE = config.get('longitude')
 UNITS = config.get('units')  # 'imperial' for Fahrenheit, 'metric' for Celsius
 
 # Create URL for API call
-OPENWEATHER_CURRENT_CONDITIONS_URL = 'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}'
-OPENWEATHER_FORECAST_URL =           'https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}'
+OPENWEATHER_ONECALL_URL = 'https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&units={units}&exclude=minutely,hourly&appid={api_key}'
 
 def request_with_retries(url, retries=3, backoff_factor=0.3):
     """Make a GET request with retries."""
@@ -38,32 +37,15 @@ def request_with_retries(url, retries=3, backoff_factor=0.3):
             else:
                 raise e
 
-def current_weather():
-    """Fetch current weather data from OpenWeatherMap API."""
-    url = OPENWEATHER_CURRENT_CONDITIONS_URL.format(
-        lat=LATITUDE,
-        lon=LONGITUDE,
-        units=UNITS,
-        api_key=API_KEY
-    )
+def onecall():
+    url = OPENWEATHER_ONECALL_URL.format(lat=LATITUDE, lon=LONGITUDE, units=UNITS, api_key=API_KEY)
     response = request_with_retries(url)
     return response.json()
 
-def forecast_weather():
-    noaa = NOAA()
-    noaa.user_agent = config.get('noaa_user_agent')
-    forecast = noaa.points_forecast(LATITUDE, LONGITUDE, type='forecast')
-    return forecast
-
-# last 24 hour data, add argument for start/end_date
 def water_level_24h(NOAA_COOPS_STATION):
-    # Create Station Object
     stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
-
-    # Get today date string
     today = dt.datetime.now()
     todaystr = today.strftime("%Y%m%d %H:%M")
-    # Get yesterday date string
     yesterday = today - dt.timedelta(days=1)
     yesterdaystr = yesterday.strftime("%Y%m%d %H:%M")
 
@@ -78,13 +60,9 @@ def water_level_24h(NOAA_COOPS_STATION):
     return WaterLevel
 
 def tides(NOAA_COOPS_STATION):
-    # Create Station Object
     stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
-
-    # Get today date string
     today = dt.datetime.now()
     todaystr = today.strftime("%Y%m%d")
-    # Get yesterday date string
     tomorrow = today + dt.timedelta(days=1)
     tomorrowstr = tomorrow.strftime("%Y%m%d")
 
@@ -101,21 +79,20 @@ def tides(NOAA_COOPS_STATION):
 
 def main():
     # Running this file directly will print out current weather and tide data
-    weather = current_weather()
+    onecall_result = onecall()
     print("Current Weather:")
-    print(weather)
+    pprint(onecall_result.get('current'))
 
-    forecast = forecast_weather()
     print("\nForecast:")
-    print(forecast)
+    pprint(onecall_result.get('daily')[0:2]) # Print today's and tomorrow's forecast
 
     water_level = water_level_24h(NOAA_COOPS_STATION)
     print("\nWater Level (Last 24 hours):")
-    print(water_level)
+    pprint(water_level)
     
     tide = tides(NOAA_COOPS_STATION)
     print("\nTide Data:")
-    print(tide)
+    pprint(tide)
 
 if __name__ == "__main__":
     main()

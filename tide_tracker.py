@@ -32,6 +32,13 @@ picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
 fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'font')
 
+configpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')
+
+with open(configpath, 'r') as configfile:
+    config = json.load(configfile)
+
+LOCATION = config.get('location_name')
+
 
 # define funciton for writing image and sleeping for specified time
 def write_to_screen(image, sleep_seconds):
@@ -70,10 +77,6 @@ def display_error(error_source):
     # Write error to screen
     write_to_screen(error_image_file, 30)
 
-# define function for getting weather data
-def getWeather(URL):
-
-
 
 # Plot last 24 hours of tide
 def plotTide(TideData):
@@ -111,6 +114,19 @@ black = 'rgb(0,0,0)'
 white = 'rgb(255,255,255)'
 grey = 'rgb(235,235,235)'
 
+class ForecastData:
+    def __init__(self, daily_forecast: Iterable[dict]):
+        self.temp_min = daily_forecast['temp']['min']
+        self.temp_max = daily_forecast['temp']['max']
+        self.precip_percent = daily_forecast['pop'] * 100
+        self.icon_code = daily_forecast['weather'][0]['icon']
+
+        self.fmt_temp_min = 'Low: ' + format(self.temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
+        self.fmt_temp_max = 'High:  ' + format(self.temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
+        self.fmt_precip_percent = 'Precip: ' + str(format(self.precip_percent, '.0f'))  + '%'
+        self.fmt_icon_code = self.icon_code + '.png'
+
+        return self
 
 
 def main():
@@ -121,75 +137,30 @@ def main():
     epd.Clear()
 
     while True:
-        # Get weather data
-        cur_weather = current_weather()
-
-        temp_current = cur_weather['main']['temp']
-        # get feels like
-        feels_like = cur_weather['main']['feels_like']
-        # get humidity
-        humidity = cur_weather['main']['humidity']
-        # get pressure
-        wind = cur_weather['wind']['speed']
-        # get description
-        weather = cur_weather['weather']
+        onecall_result = weather_tides_api.onecall()
+        # Get current weather conditions
+        current_conditions = onecall_result.get('current')
+        temp_current = current_conditions['temp']
+        feels_like = current_conditions['feels_like']
+        humidity = current_conditions['humidity']
+        wind = current_conditions['wind_speed']
+        weather = current_conditions['weather']
         report = weather[0]['description']
-        # get icon url
         icon_code = weather[0]['icon']
 
-        # get daily dict block
-        daily = data['daily']
-        # get daily precip
-        daily_precip_float = daily[0]['pop']
-        #format daily precip
-        daily_precip_percent = daily_precip_float * 100
-        # get min and max temp
-        daily_temp = daily[0]['temp']
-        temp_max = daily_temp['max']
-        temp_min = daily_temp['min']
+        # get daily forecasts
+        daily = onecall_result['daily']
 
-        # Set strings to be printed to screen
-        string_location = LOCATION
+        today_forecast = ForecastData(daily[0])
+        nx_forecast = ForecastData(daily[1])
+        nx_nx_forecast = ForecastData(daily[2])
+
+        # SFormat current conditions data
         string_temp_current = format(temp_current, '.0f') + u'\N{DEGREE SIGN}F'
         string_feels_like = 'Feels like: ' + format(feels_like, '.0f') +  u'\N{DEGREE SIGN}F'
-        string_humidity = 'Humidity: ' + str(humidity) + '%'
+        # string_humidity = 'Humidity: ' + str(humidity) + '%'  # Never used originally
         string_wind = 'Wind: ' + format(wind, '.1f') + ' MPH'
         string_report = 'Now: ' + report.title()
-        string_temp_max = 'High: ' + format(temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-        string_temp_min = 'Low:  ' + format(temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
-        string_precip_percent = 'Precip: ' + str(format(daily_precip_percent, '.0f'))  + '%'
-
-        # get min and max temp
-        nx_daily_temp = daily[1]['temp']
-        nx_temp_max = nx_daily_temp['max']
-        nx_temp_min = nx_daily_temp['min']
-        # get daily precip
-        nx_daily_precip_float = daily[1]['pop']
-        #format daily precip
-        nx_daily_precip_percent = nx_daily_precip_float * 100
-
-        # get min and max temp
-        nx_nx_daily_temp = daily[2]['temp']
-        nx_nx_temp_max = nx_nx_daily_temp['max']
-        nx_nx_temp_min = nx_nx_daily_temp['min']
-        # get daily precip
-        nx_nx_daily_precip_float = daily[2]['pop']
-        #format daily precip
-        nx_nx_daily_precip_percent = nx_nx_daily_precip_float * 100
-
-        # Tomorrow Forcast Strings
-        nx_day_high = 'High: ' + format(nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-        nx_day_low = 'Low: ' + format(nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
-        nx_precip_percent = 'Precip: ' + str(format(nx_daily_precip_percent, '.0f'))  + '%'
-        nx_weather_icon = daily[1]['weather']
-        nx_icon = nx_weather_icon[0]['icon']
-
-        # Overmorrow Forcast Strings
-        nx_nx_day_high = 'High: ' + format(nx_nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-        nx_nx_day_low = 'Low: ' + format(nx_nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
-        nx_nx_precip_percent = 'Precip: ' + str(format(nx_nx_daily_precip_percent, '.0f'))  + '%'
-        nx_nx_weather_icon = daily[2]['weather']
-        nx_nx_icon = nx_nx_weather_icon[0]['icon']
 
         # Last updated time
         now = dt.datetime.now()
@@ -201,7 +172,7 @@ def main():
         wl_error = True
         while wl_error == True:
             try:
-                WaterLevel = past24(StationID)
+                WaterLevel = weather_tides_api.past24()
                 wl_error = False
             except:
                 display_error('Tide Data')
@@ -237,32 +208,32 @@ def main():
         y = 100
         draw.text((250,y), string_feels_like, font=font15, fill=black)
         draw.text((250,y+20), string_wind, font=font15, fill=black)
-        draw.text((250,y+40), string_precip_percent, font=font15, fill=black)
-        draw.text((250,y+60), string_temp_max, font=font15, fill=black)
-        draw.text((250,y+80), string_temp_min, font=font15, fill=black)
+        draw.text((250,y+40), today_forecast.fmt_precip_percent, font=font15, fill=black)
+        draw.text((250,y+60), today_forecast.fmt_temp_max, font=font15, fill=black)
+        draw.text((250,y+80), today_forecast.fmt_temp_min, font=font15, fill=black)
 
         draw.text((125,218), last_update_string, font=font15, fill=black)
 
         # Weather Forcast
         # Tomorrow
-        icon_file = nx_icon + '.png'
+        icon_file = nx_forecast.fmt_icon_code
         icon_image = Image.open(os.path.join(icondir, icon_file))
         icon_image = icon_image.resize((130,130))
         template.paste(icon_image, (435, 50))
         draw.text((450,20), 'Tomorrow', font=font22, fill=black)
-        draw.text((415,180), nx_day_high, font=font15, fill=black)
-        draw.text((515,180), nx_day_low, font=font15, fill=black)
-        draw.text((460,200), nx_precip_percent, font=font15, fill=black)
+        draw.text((415,180), nx_forecast.fmt_temp_max, font=font15, fill=black)
+        draw.text((515,180), nx_forecast.fmt_temp_min, font=font15, fill=black)
+        draw.text((460,200), nx_forecast.fmt_precip_percent, font=font15, fill=black)
 
         # Next Next Day Forcast
-        icon_file = nx_nx_icon + '.png'
+        icon_file = nx_nx_forecast.fmt_icon_code
         icon_image = Image.open(os.path.join(icondir, icon_file))
         icon_image = icon_image.resize((130,130))
         template.paste(icon_image, (635, 50))
         draw.text((625,20), 'Next-Next Day', font=font22, fill=black)
-        draw.text((615,180), nx_nx_day_high, font=font15, fill=black)
-        draw.text((715,180), nx_nx_day_low, font=font15, fill=black)
-        draw.text((660,200), nx_nx_precip_percent, font=font15, fill=black)
+        draw.text((615,180), nx_nx_forecast.fmt_temp_max, font=font15, fill=black)
+        draw.text((715,180), nx_nx_forecast.fmt_temp_min, font=font15, fill=black)
+        draw.text((660,200), nx_nx_forecast.fmt_precip_percent, font=font15, fill=black)
 
 
         ## Dividing lines
@@ -286,7 +257,7 @@ def main():
         hilo_error = True
         while hilo_error == True:
             try:
-                hilo_daily = HiLo(StationID)
+                hilo_daily = weather_tides_api.HiLo()
                 hilo_error = False
             except:
                 display_error('Tide Prediction')
