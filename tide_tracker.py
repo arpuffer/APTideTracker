@@ -126,8 +126,6 @@ class ForecastData:
         self.fmt_precip_percent = 'Precip: ' + str(format(self.precip_percent, '.0f'))  + '%'
         self.fmt_icon_code = self.icon_code + '.png'
 
-        return self
-
 
 def main():
     # Initialize and clear screen
@@ -172,7 +170,7 @@ def main():
         wl_error = True
         while wl_error == True:
             try:
-                WaterLevel = weather_tides_api.past24()
+                WaterLevel = weather_tides_api.water_level_24h()
                 wl_error = False
             except:
                 display_error('Tide Data')
