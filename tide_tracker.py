@@ -77,12 +77,12 @@ def display_error(error_source, epd):
 # Plot last 24 hours of tide
 def plotTide(TideData):
     # Adjust data for negative values
-    minlevel = TideData['water_level'].min()
-    TideData['water_level'] = TideData['water_level'] - minlevel
+    minlevel = TideData['v'].min()
+    TideData['v'] = TideData['v'] - minlevel
 
     # Create Plot
     fig, axs = plt.subplots(figsize=(12, 4))
-    TideData['water_level'].plot.area(ax=axs, color='black')
+    TideData['v'].plot.area(ax=axs, color='black')
     plt.title('Tide- Past 24 Hours', fontsize=20)
     #fontweight="bold",
     #axs.xaxis.set_tick_params(labelsize=20)
