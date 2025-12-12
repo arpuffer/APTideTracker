@@ -1,8 +1,9 @@
 {
-    "latitude": null,
-    "longitude": null,
-    "location": null,
-    "noaa_station_id": null,
-    "openweather_api_key": null,
-    "units": null
+    "latitude": "",
+    "longitude": "",
+    "location_name": "",
+    "noaa_station_id": "",
+    "openweather_api_key": "",
+    "units": "",
+    "noaa_user_agent": ""
 }
