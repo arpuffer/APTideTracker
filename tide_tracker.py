@@ -40,7 +40,7 @@ with open(configpath, 'r') as configfile:
 LOCATION = config.get('location_name')
 
 
-def write_to_screen(image):
+def write_to_screen(image, epd):
     print('Writing to screen.') # for debugging
     h_image = Image.new('1', (epd.width, epd.height), 255)
     # Open the template
@@ -54,7 +54,7 @@ def write_to_screen(image):
     epd.sleep() # Put screen to sleep to prevent damage
 
 
-def display_error(error_source):
+def display_error(error_source, epd):
     print('Error in the', error_source, 'request.')
     # Initialize drawing
     error_image = Image.new('1', (epd.width, epd.height), 255)
@@ -70,7 +70,7 @@ def display_error(error_source):
     # Close error image
     error_image.close()
     # Write error to screen
-    write_to_screen(error_image_file, 30)
+    write_to_screen(error_image_file, epd)
 
 
 # Plot last 24 hours of tide
@@ -165,7 +165,7 @@ def main():
                 WaterLevel = weather_tides_api.water_level_24h()
                 wl_error = False
             except:
-                display_error('Tide Data')
+                display_error('Tide Data', epd)
 
         plotTide(WaterLevel)
 
@@ -250,7 +250,7 @@ def main():
                 hilo_daily = weather_tides_api.HiLo()
                 hilo_error = False
             except:
-                display_error('Tide Prediction')
+                display_error('Tide Prediction', epd)
 
         # Display tide preditions
         y_loc = 300 # starting location of list
@@ -276,7 +276,7 @@ def main():
         # Close the template file
         template.close()
 
-        write_to_screen(screen_output_file, 600)
+        write_to_screen(screen_output_file, epd)
         #epd.Clear()
 
 if __name__ == '__main__':
