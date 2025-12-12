@@ -25,6 +25,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 import weather_tides_api
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(script_dir)
+os.chdir(script_dir)
+
 sys.path.append('lib')
 from waveshare_epd import epd7in5_V2
 
@@ -43,10 +48,8 @@ LOCATION = config.get('location_name')
 def write_to_screen(image, epd):
     print('Writing to screen.') # for debugging
     h_image = Image.new('1', (epd.width, epd.height), 255)
-    # Open the template
-    screen_output_file = Image.open(os.path.join(picdir, image))
     # Initialize the drawing context with template as background
-    h_image.paste(screen_output_file, (0, 0))
+    h_image.paste(image, (0, 0))
 
     # Write to screen
     epd.init()
@@ -65,13 +68,10 @@ def display_error(error_source, epd):
     draw.text((100, 300), 'Retrying in 30 seconds', font=font22, fill=black)
     current_time = dt.datetime.now().strftime('%H:%M')
     draw.text((300, 365), 'Last Refresh: ' + str(current_time), font = font50, fill=black)
-    # Save the error image
-    error_image_file = 'error.png'
-    error_image.save(os.path.join(picdir, error_image_file))
-    # Close error image
-    error_image.close()
+
     # Write error to screen
-    write_to_screen(error_image_file, epd)
+    write_to_screen(error_image, epd)
+    error_image.close()
 
 
 # Plot last 24 hours of tide
@@ -264,12 +264,13 @@ def main():
 
 
     # Save the image for display as PNG
-    screen_output_file = os.path.join(picdir, 'screen_output.png')
-    template.save(screen_output_file)
+    #screen_output_file = os.path.join(picdir, 'screen_output.png')
+    #template.save(screen_output_file)
     # Close the template file
-    template.close()
+    #template.close()
 
-    write_to_screen(screen_output_file, epd)
+    write_to_screen(template, epd)
+    template.close()
     #epd.Clear()
 
 if __name__ == '__main__':
