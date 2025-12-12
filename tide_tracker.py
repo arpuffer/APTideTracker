@@ -250,11 +250,11 @@ def main():
     # Iterate over preditions
     for index, row in hilo_daily.iterrows():
         # For high tide
-        if row['v'] == 'H':
+        if row['type'] == 'H':
             tide_time = index.strftime("%H:%M")
             tidestr = "High: " + tide_time
         # For low tide
-        elif row['v'] == 'L':
+        elif row['type'] == 'L':
             tide_time = index.strftime("%H:%M")
             tidestr = "Low:  " + tide_time
 
