@@ -40,26 +40,21 @@ with open(configpath, 'r') as configfile:
 LOCATION = config.get('location_name')
 
 
-# define funciton for writing image and sleeping for specified time
-def write_to_screen(image, sleep_seconds):
+def write_to_screen(image):
     print('Writing to screen.') # for debugging
-    # Create new blank image template matching screen resolution
     h_image = Image.new('1', (epd.width, epd.height), 255)
     # Open the template
     screen_output_file = Image.open(os.path.join(picdir, image))
     # Initialize the drawing context with template as background
     h_image.paste(screen_output_file, (0, 0))
+
+    # Write to screen
+    epd.init()
     epd.display(epd.getbuffer(h_image))
-    # Sleep
     epd.sleep() # Put screen to sleep to prevent damage
-    print('Sleeping for ' + str(sleep_seconds) +'.')
-    time.sleep(sleep_seconds) # Determines refresh rate on data
-    epd.init() # Re-Initialize screen
 
 
-# define function for displaying error
 def display_error(error_source):
-    # Display an error
     print('Error in the', error_source, 'request.')
     # Initialize drawing
     error_image = Image.new('1', (epd.width, epd.height), 255)
@@ -93,9 +88,6 @@ def plotTide(TideData):
     #axs.yaxis.set_tick_params(labelsize=20)
     plt.savefig('images/TideLevel.png', dpi=60)
     #plt.show()
-
-
-# Get High and Low tide info
 
 
 # Set the font sizes
@@ -155,7 +147,7 @@ def main():
         nx_forecast = ForecastData(daily[1])
         nx_nx_forecast = ForecastData(daily[2])
 
-        # SFormat current conditions data
+        # Format current conditions data
         string_temp_current = format(temp_current, '.0f') + u'\N{DEGREE SIGN}F'
         string_feels_like = 'Feels like: ' + format(feels_like, '.0f') +  u'\N{DEGREE SIGN}F'
         # string_humidity = 'Humidity: ' + str(humidity) + '%'  # Never used originally
