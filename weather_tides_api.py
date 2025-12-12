@@ -42,7 +42,7 @@ def onecall():
     response = request_with_retries(url)
     return response.json()
 
-def water_level_24h(NOAA_COOPS_STATION):
+def water_level_24h():
     stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
     today = dt.datetime.now()
     todaystr = today.strftime("%Y%m%d %H:%M")
@@ -59,7 +59,7 @@ def water_level_24h(NOAA_COOPS_STATION):
 
     return WaterLevel
 
-def tides(NOAA_COOPS_STATION):
+def tides():
     stationdata = noaa_coops.Station(NOAA_COOPS_STATION)
     today = dt.datetime.now()
     todaystr = today.strftime("%Y%m%d")
