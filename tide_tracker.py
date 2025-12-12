@@ -183,7 +183,8 @@ def main():
     draw.text((125,10), LOCATION, font=font35, fill=black)
 
     # Center current weather report
-    w, h = draw.textsize(string_report, font=font20)
+    w = draw.textlength(string_report, font=font20)
+    h = 20
     #print(w)
     if w > 250:
         string_report = 'Now:\n' + report.title()
