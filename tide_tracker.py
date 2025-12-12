@@ -157,13 +157,10 @@ def main():
 
     # Tide Data
     # Get water level
-    wl_error = True
-    while wl_error == True:
-        try:
-            WaterLevel = weather_tides_api.water_level_24h()
-            wl_error = False
-        except:
-            display_error('Tide Data', epd)
+    try:
+        WaterLevel = weather_tides_api.water_level_24h()
+    except:
+        display_error('Tide Data', epd)
 
     plotTide(WaterLevel)
 
@@ -243,13 +240,10 @@ def main():
     draw.text((30,260), "Today's Tide", font=font22, fill=black)
 
     # Get tide time predictions
-    hilo_error = True
-    while hilo_error == True:
-        try:
-            hilo_daily = weather_tides_api.HiLo()
-            hilo_error = False
-        except:
-            display_error('Tide Prediction', epd)
+    try:
+        hilo_daily = weather_tides_api.tides()
+    except:
+        display_error('Tide Prediction', epd)
 
     # Display tide preditions
     y_loc = 300 # starting location of list
