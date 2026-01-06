@@ -31,7 +31,6 @@ sys.path.append(script_dir)
 os.chdir(script_dir)
 
 sys.path.append('lib')
-from waveshare_epd import epd7in5_V2
 
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
@@ -43,6 +42,10 @@ with open(configpath, 'r') as configfile:
     config = json.load(configfile)
 
 LOCATION = config.get('location_name')
+DRY_RUN = config.get('dry_run', False)
+
+if not DRY_RUN:
+    from waveshare_epd import epd7in5_V2
 
 
 def write_to_screen(image, epd):
@@ -51,11 +54,14 @@ def write_to_screen(image, epd):
     # Initialize the drawing context with template as background
     h_image.paste(image, (0, 0))
 
-    # Write to screen
-    epd.init()
-    epd.Clear()
-    epd.display(epd.getbuffer(h_image))
-    epd.sleep() # Put screen to sleep to prevent damage
+    # Display Image
+    if DRY_RUN:
+        h_image.show()
+    else:
+        epd.init()
+        epd.Clear()
+        epd.display(epd.getbuffer(h_image))
+        epd.sleep() # Put screen to sleep to prevent damage
 
 
 def display_error(error_source, epd):
@@ -123,7 +129,13 @@ class ForecastData:
 def main():
     # Initialize and clear screen
     print('Initializing and clearing screen.')
-    epd = epd7in5_V2.EPD() # Create object for display functions
+    if DRY_RUN:
+        class DummyEPD:
+            width = 800
+            height = 480
+        epd = DummyEPD()
+    else:
+        epd = epd7in5_V2.EPD() # Create object for display functions
 
     onecall_result = weather_tides_api.onecall()
     # Get current weather conditions
@@ -262,16 +274,8 @@ def main():
         draw.text((40,y_loc), tidestr, font=font15, fill=black)
         y_loc += 25 # This bumps the next prediction down a line
 
-
-    # Save the image for display as PNG
-    #screen_output_file = os.path.join(picdir, 'screen_output.png')
-    #template.save(screen_output_file)
-    # Close the template file
-    #template.close()
-
     write_to_screen(template, epd)
     template.close()
-    #epd.Clear()
 
 if __name__ == '__main__':
     main()
