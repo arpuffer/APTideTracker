@@ -103,18 +103,6 @@ def plotTide(TideData):
     return tide_graph_img
     plt.savefig('images/TideLevel.png', dpi=60)
 
-
-# Set the font sizes
-font15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
-font20 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 20)
-font22 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 22)
-font30 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 30)
-font35 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 35)
-font50 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 50)
-font60 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 60)
-font100 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 100)
-font160 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 160)
-
 # Set the colors
 black = 'rgb(0,0,0)'
 white = 'rgb(255,255,255)'
