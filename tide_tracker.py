@@ -212,13 +212,13 @@ def main():
     # Data
     draw.text((250,55), string_temp_current, font_size=35, fill=black)
     y = 100
-    draw.text((250,y), string_feels_like, font_size=15, fill=black)
-    draw.text((250,y+20), string_wind, font_size=15, fill=black)
-    draw.text((250,y+40), today_forecast.fmt_precip_percent, font_size=15, fill=black)
-    draw.text((250,y+60), today_forecast.fmt_temp_max, font_size=15, fill=black)
-    draw.text((250,y+80), today_forecast.fmt_temp_min, font_size=15, fill=black)
+    draw.text((250,y), string_feels_like, font_size=16, fill=black)
+    draw.text((250,y+20), string_wind, font_size=16, fill=black)
+    draw.text((250,y+40), today_forecast.fmt_precip_percent, font_size=16, fill=black)
+    draw.text((250,y+60), today_forecast.fmt_temp_max, font_size=16, fill=black)
+    draw.text((250,y+80), today_forecast.fmt_temp_min, font_size=16, fill=black)
 
-    draw.text((125,218), last_update_string, font_size=15, fill=black)
+    draw.text((125,218), last_update_string, font_size=16, fill=black)
 
     # Weather Forcast
     # Tomorrow
@@ -227,9 +227,9 @@ def main():
     icon_image = icon_image.resize((130,130))
     template.paste(icon_image, (435, 50))
     draw.text((450,20), 'Tomorrow', font_size=22, fill=black)
-    draw.text((415,180), nx_forecast.fmt_temp_max, font_size=15, fill=black)
-    draw.text((515,180), nx_forecast.fmt_temp_min, font_size=15, fill=black)
-    draw.text((460,200), nx_forecast.fmt_precip_percent, font_size=15, fill=black)
+    draw.text((415,180), nx_forecast.fmt_temp_max, font_size=16, fill=black)
+    draw.text((515,180), nx_forecast.fmt_temp_min, font_size=16, fill=black)
+    draw.text((460,200), nx_forecast.fmt_precip_percent, font_size=16, fill=black)
 
     # Next Next Day Forcast
     icon_file = nx_nx_forecast.fmt_icon_code
@@ -237,9 +237,9 @@ def main():
     icon_image = icon_image.resize((130,130))
     template.paste(icon_image, (635, 50))
     draw.text((625,20), 'Next-Next Day', font_size=22, fill=black)
-    draw.text((615,180), nx_nx_forecast.fmt_temp_max, font_size=15, fill=black)
-    draw.text((715,180), nx_nx_forecast.fmt_temp_min, font_size=15, fill=black)
-    draw.text((660,200), nx_nx_forecast.fmt_precip_percent, font_size=15, fill=black)
+    draw.text((615,180), nx_nx_forecast.fmt_temp_max, font_size=16, fill=black)
+    draw.text((715,180), nx_nx_forecast.fmt_temp_min, font_size=16, fill=black)
+    draw.text((660,200), nx_nx_forecast.fmt_precip_percent, font_size=16, fill=black)
 
 
     ## Dividing lines
@@ -277,7 +277,7 @@ def main():
             tidestr = "Low:  " + tide_time
 
         # Draw to display image
-        draw.text((40,y_loc), tidestr, font_size=15, fill=black)
+        draw.text((40,y_loc), tidestr, font_size=16, fill=black)
         y_loc += 25 # This bumps the next prediction down a line
 
     write_to_screen(template, epd)
