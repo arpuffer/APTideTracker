@@ -173,7 +173,7 @@ def main():
 
 
     # Open template file
-    template = Image.open(os.path.join(picdir, 'template.png'))
+    template = Image.new('1', (epd.width, epd.height), 255)
     # Initialize the drawing context with template as background
     draw = ImageDraw.Draw(template)
     draw.fontmode = "1"
