@@ -47,6 +47,8 @@ DRY_RUN = config.get('dry_run', False)
 if not DRY_RUN:
     from waveshare_epd import epd7in5_V2
 
+plt.rcParams['font.size'] = 12 # Set default font size
+plt.rcParams['text.antialiased'] = False
 
 def write_to_screen(image, epd):
     print('Writing to screen.') # for debugging
@@ -70,8 +72,9 @@ def display_error(error_source, epd):
     error_image = Image.new('1', (epd.width, epd.height), 255)
     # Initialize the drawing
     draw = ImageDraw.Draw(error_image)
-    draw.text((100, 150), error_source +' ERROR', font=font50, fill=black)
-    draw.text((100, 300), 'Retrying in 30 seconds', font=font22, fill=black)
+    draw.fontmode = "1"
+    draw.text((100, 150), error_source +' ERROR', font_size=50, fill=black)
+    draw.text((100, 300), 'Retrying in 30 seconds', font_size=22, fill=black)
     current_time = dt.datetime.now().strftime('%H:%M')
     draw.text((300, 365), 'Last Refresh: ' + str(current_time), font = font50, fill=black)
 
@@ -181,6 +184,7 @@ def main():
     template = Image.open(os.path.join(picdir, 'template.png'))
     # Initialize the drawing context with template as background
     draw = ImageDraw.Draw(template)
+    draw.fontmode = "1"
 
     # Current weather
     ## Open icon file
@@ -189,28 +193,28 @@ def main():
     icon_image = icon_image.resize((130,130))
     template.paste(icon_image, (50, 50))
 
-    draw.text((125,10), LOCATION, font=font35, fill=black)
+    draw.text((125,10), LOCATION, font_size=35, fill=black)
 
     # Center current weather report
-    w = draw.textlength(string_report, font=font20)
+    w = draw.textlength(string_report, font_size=20)
     h = 20
     #print(w)
     if w > 250:
         string_report = 'Now:\n' + report.title()
 
     center = int(120-(w/2))
-    draw.text((center,175), string_report, font=font20, fill=black)
+    draw.text((center,175), string_report, font_size=20, fill=black)
 
     # Data
-    draw.text((250,55), string_temp_current, font=font35, fill=black)
+    draw.text((250,55), string_temp_current, font_size=35, fill=black)
     y = 100
-    draw.text((250,y), string_feels_like, font=font15, fill=black)
-    draw.text((250,y+20), string_wind, font=font15, fill=black)
-    draw.text((250,y+40), today_forecast.fmt_precip_percent, font=font15, fill=black)
-    draw.text((250,y+60), today_forecast.fmt_temp_max, font=font15, fill=black)
-    draw.text((250,y+80), today_forecast.fmt_temp_min, font=font15, fill=black)
+    draw.text((250,y), string_feels_like, font_size=15, fill=black)
+    draw.text((250,y+20), string_wind, font_size=15, fill=black)
+    draw.text((250,y+40), today_forecast.fmt_precip_percent, font_size=15, fill=black)
+    draw.text((250,y+60), today_forecast.fmt_temp_max, font_size=15, fill=black)
+    draw.text((250,y+80), today_forecast.fmt_temp_min, font_size=15, fill=black)
 
-    draw.text((125,218), last_update_string, font=font15, fill=black)
+    draw.text((125,218), last_update_string, font_size=15, fill=black)
 
     # Weather Forcast
     # Tomorrow
@@ -218,20 +222,20 @@ def main():
     icon_image = Image.open(os.path.join(icondir, icon_file))
     icon_image = icon_image.resize((130,130))
     template.paste(icon_image, (435, 50))
-    draw.text((450,20), 'Tomorrow', font=font22, fill=black)
-    draw.text((415,180), nx_forecast.fmt_temp_max, font=font15, fill=black)
-    draw.text((515,180), nx_forecast.fmt_temp_min, font=font15, fill=black)
-    draw.text((460,200), nx_forecast.fmt_precip_percent, font=font15, fill=black)
+    draw.text((450,20), 'Tomorrow', font_size=22, fill=black)
+    draw.text((415,180), nx_forecast.fmt_temp_max, font_size=15, fill=black)
+    draw.text((515,180), nx_forecast.fmt_temp_min, font_size=15, fill=black)
+    draw.text((460,200), nx_forecast.fmt_precip_percent, font_size=15, fill=black)
 
     # Next Next Day Forcast
     icon_file = nx_nx_forecast.fmt_icon_code
     icon_image = Image.open(os.path.join(icondir, icon_file))
     icon_image = icon_image.resize((130,130))
     template.paste(icon_image, (635, 50))
-    draw.text((625,20), 'Next-Next Day', font=font22, fill=black)
-    draw.text((615,180), nx_nx_forecast.fmt_temp_max, font=font15, fill=black)
-    draw.text((715,180), nx_nx_forecast.fmt_temp_min, font=font15, fill=black)
-    draw.text((660,200), nx_nx_forecast.fmt_precip_percent, font=font15, fill=black)
+    draw.text((625,20), 'Next-Next Day', font_size=22, fill=black)
+    draw.text((615,180), nx_nx_forecast.fmt_temp_max, font_size=15, fill=black)
+    draw.text((715,180), nx_nx_forecast.fmt_temp_min, font_size=15, fill=black)
+    draw.text((660,200), nx_nx_forecast.fmt_precip_percent, font_size=15, fill=black)
 
 
     ## Dividing lines
@@ -249,7 +253,7 @@ def main():
     draw.line((25, h, 775, h), fill='black', width=3)
 
     # Daily tide times
-    draw.text((30,260), "Today's Tide", font=font22, fill=black)
+    draw.text((30,260), "Today's Tide", font_size=22, fill=black)
 
     # Get tide time predictions
     try:
@@ -271,7 +275,7 @@ def main():
             tidestr = "Low:  " + tide_time
 
         # Draw to display image
-        draw.text((40,y_loc), tidestr, font=font15, fill=black)
+        draw.text((40,y_loc), tidestr, font_size=15, fill=black)
         y_loc += 25 # This bumps the next prediction down a line
 
     write_to_screen(template, epd)
