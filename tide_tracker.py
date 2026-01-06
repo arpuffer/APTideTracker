@@ -10,6 +10,7 @@
 ****************************************************************
 '''
 import datetime as dt
+import io
 import json
 import sys
 import os
@@ -93,11 +94,14 @@ def plotTide(TideData):
     fig, axs = plt.subplots(figsize=(12, 4))
     TideData['v'].plot.area(ax=axs, color='black')
     plt.title('Tide- Past 24 Hours', fontsize=20)
-    #fontweight="bold",
-    #axs.xaxis.set_tick_params(labelsize=20)
-    #axs.yaxis.set_tick_params(labelsize=20)
+
+    # write plot to a BytesIO buffer to convert to PIL Image
+    img_buffer = io.BytesIO()
+    fig.savefig(img_buffer, format='png', dpi=60)
+    img_buffer.seek(0)
+    tide_graph_img = Image.open(img_buffer)
+    return tide_graph_img
     plt.savefig('images/TideLevel.png', dpi=60)
-    #plt.show()
 
 
 # Set the font sizes
@@ -177,7 +181,7 @@ def main():
     except:
         display_error('Tide Data', epd)
 
-    plotTide(WaterLevel)
+    tide_graph = plotTide(WaterLevel)
 
 
     # Open template file
@@ -244,9 +248,7 @@ def main():
 
 
     # Tide Info
-    # Graph
-    tidegraph = Image.open('images/TideLevel.png')
-    template.paste(tidegraph, (125, 240))
+    template.paste(tide_graph, (125, 240))
 
     # Large horizontal dividing line
     h = 240
