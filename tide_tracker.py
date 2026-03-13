@@ -159,7 +159,8 @@ def main():
 
     # Last updated time
     now = dt.datetime.now()
-    current_time = now.strftime("%H:%M")
+    current_time = now.isoformat(timespec="minutes")
+    current_time = now.strftime("%D %H:%M")
     last_update_string = 'Last Updated: ' + current_time
 
     # Tide Data
