@@ -20,5 +20,5 @@ pip install spidev matplotlib numpy gpiozero lgpio noaa_coops
 crontab -e
 
 # Add the following
-* * * * * /path/to/project/.venv/bin/python /path/to/project/tide_tracker.py
+10 * * * * /path/to/project/.venv/bin/python /path/to/project/tide_tracker.py
 ```
